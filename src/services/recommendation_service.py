@@ -1,4 +1,4 @@
-"""This module provides the service for generating game recommendations using OpenAI's GPT-3 model."""
+"""This module provides the service for generating game recommendations using OpenAI's GPT-3.5 model."""
 import openai
 
 from models import model
@@ -12,11 +12,11 @@ def generate_recommended_text(
     world_view_model: model.WorldView,
     detail_model: model.Detail,
 ) -> str | None:
-    """Generates a game recommendation based on user preferences using OpenAI's GPT-3 model.
+    """Generates a game recommendation based on user preferences using OpenAI's GPT-3.5 model.
 
     This function takes in the user's preferences for genre, price range, hardware, game format, world view,
     and additional details.
-    It then uses these preferences to generate a game recommendation using OpenAI's GPT-3 model.
+    It then uses these preferences to generate a game recommendation using OpenAI's GPT-3.5 model.
 
     Args:
         genre_model (model.Genre): The user's preferred game genre.
@@ -30,7 +30,7 @@ def generate_recommended_text(
         str | None: A string containing the recommended game, or None if a recommendation could not be generated.
     """
     response = openai.OpenAI().chat.completions.create(
-        model="gpt-3.5-turbo-0613",
+        model="gpt-3.5-turbo-1106",
         messages=[
             {
                 "role": "system",
