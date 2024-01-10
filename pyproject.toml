@@ -1,0 +1,99 @@
+[tool.poetry]
+name = "pairs"
+version = "0.1.0"
+description = ""
+authors = ["kaito <shugyo596@outlook.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = ">=3.11,<3.12"
+pydantic = "^2.5.3"
+sqlmodel = "^0.0.14"
+streamlit = "^1.29.0"
+openai = "^1.6.1"
+python-dotenv = "^1.0.0"
+bcrypt = "^4.1.2"
+
+[tool.poetry.group.dev.dependencies]
+ruff = "^0.1.4"
+mypy = "^1.6.1"
+pytest = "^7.4.3"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.ruff]
+target-version = "py312"
+src = ["src", "tests"]
+line-length = 119
+
+[tool.ruff.lint]
+select = ["ALL"]
+ignore = [
+    "G004", # `logging-f-string`
+    "PLC1901", # compare-to-empty-string
+    "PLR2004", # magic-value-comparison
+    "ANN101", # missing-type-self
+    "ANN102", # missing-type-cls
+    "ANN002", # missing-type-args
+    "ANN003", # missing-type-kwargs
+    "ANN401", # any-type
+    "ERA", # commented-out-code
+    "ARG002", # unused-method-argument
+    "INP001", # implicit-namespace-package
+    "PGH004", # blanket-noqa
+    "B008", # for using in Depends
+    "A002", # builtin-argument-shadowing
+    "A003", # builtin-attribute-shadowing
+    "PLR0913", # too-many-arguments
+    "RSE", # flake8-raise
+    "D", # pydocstyle
+    "C90", # mccabe
+    "T20", # flake8-print
+    "SLF", #  flake8-self
+    "BLE", # flake8-blind-except
+    "FBT", # flake8-boolean-trap
+    "TRY", # tryceratops
+    "COM", # flake8-commas
+    "S", # flake8-bandit
+    "EM", #flake8-errmsg
+    "EXE", # flake8-executable
+    "ICN", # flake8-import-conventions
+    "RET", #flake8-return
+    "SIM", #flake8-simplify
+    "TCH", # flake8-type-checking
+    "ISC", #flake8-implicit-str-concat
+    "N", # pep8-naming
+    "PT", # flake8-pytest-style
+    "W191", # from
+    "E111",
+    "E114",
+    "E117",
+    "D206",
+    "D300",
+    "Q000",
+    "Q001",
+    "Q002",
+    "Q003",
+    "COM812",
+    "COM819",
+    "ISC001",
+    "ISC002", # to(when using as formatter, avoid these rules)
+]
+
+[tool.mypy]
+plugins = "pydantic.mypy"
+allow_redefinition = false # 型のないグローバル変数を禁止する Final型の使用を推奨
+check_untyped_defs = true # 型のない関数に型チェックを行う
+disallow_untyped_defs = true # 型のない関数を禁止する
+ignore_missing_imports = true # 型のないモジュールのインポートを許可する グローバルのため特定のライブラリにのみ適用を推奨
+implicit_reexport = false # 型のないモジュールの再エクスポートを禁止する
+no_implicit_optional = true # 暗黙のOptional型を禁止する(x: int = None など)
+strict_equality = true # 異なる型の比較を禁止する
+warn_redundant_casts = true # 不要なキャストを警告する
+warn_return_any = true # Any型の戻り値を警告する
+warn_unreachable = true # 到達不能なコードを警告する
+warn_unused_configs = true # 未使用のconfig設定を警告する
+warn_unused_ignores = true # 未使用の# type: ignoreを警告する
+disallow_any_generics = true # Any型のジェネリクス(コンテナの要素)を禁止する
