@@ -79,7 +79,6 @@ venv/
 ENV/
 env.bak/
 venv.bak/
-.streamlit/secrets.toml
 
 # Spyder project settings
 .spyderproject
@@ -104,3 +103,9 @@ dmypy.json
 
 # macOS metadata
 .DS_Store
+
+# streamlit
+.streamlit/secrets.toml
+
+# sqlite
+db/pairs.db

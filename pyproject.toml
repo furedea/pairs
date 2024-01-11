@@ -2,7 +2,7 @@
 name = "pairs"
 version = "0.1.0"
 description = ""
-authors = ["kaito <shugyo596@outlook.com>"]
+authors = ["Kaito Shigyo / 執行凱斗"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
