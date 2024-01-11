@@ -1,4 +1,4 @@
-# ゲームマッチングアプリ ~Pairs~
+# ゲームマッチングアプリ「Pairs」
 
 ## Pairs(Personalized Interactive Recommendation System for game)について
 
