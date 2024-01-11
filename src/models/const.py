@@ -1,15 +1,10 @@
 """This module defines constant values for the application.
 It includes several enumerations and literals that are used throughout the application.
 
-Literals:
-    PageIDLiteral: Defines the literal values for PageID enumeration.
-    PageTitleLiteral: Defines the literal values for page titles.
-    SexLiteral: Defines the literal values for Sex enumeration.
-
 Enumerations:
+    SessionKey: Defines the keys for different session states in the application.
     PageID: Defines the IDs for different pages in the application.
     PageTitle: Defines the titles for different pages in the application.
-    SessionKey: Defines the keys for different session states in the application.
     Sex: Defines the options for user's sex.
     Genre: Defines the options for game genres.
     Hardware: Defines the options for game hardware.
@@ -17,11 +12,13 @@ Enumerations:
     WorldView: Defines the options for game world views.
 """
 from enum import Enum, auto
-from typing import Literal
 
-PageIDLiteral = Literal["LOGIN", "REGISTER", "RECOMMEND", "ACCOUNT_INFO", "HISTORY", "DELETE"]
-PageTitleLiteral = Literal["ログイン", "アカウント登録", "検索", "アカウント情報", "検索履歴", "アカウント削除"]
-SexLiteral = Literal["男性", "女性", "その他"]
+
+class SessionKey(Enum):
+    """Enumeration to define Session keys for streamlit.session_state."""
+
+    PAGE_ID = auto()
+    USER_ID = auto()
 
 
 class PageID(Enum):
@@ -44,26 +41,6 @@ class PageTitle(Enum):
     ACCOUNT_INFO = "アカウント情報"
     HISTORY = "検索履歴"
     DELETE = "アカウント削除"
-
-
-class SessionKey(Enum):
-    """Enumeration to define Session keys for streamlit.session_state."""
-
-    AUTH_API_CLIENT = auto()
-    ACCOUNT_API_CLIENT = auto()
-    HISTORY_API_CLIENT = auto()
-    PAGE_ID = auto()
-    AUTHENTICATION = auto()
-    USER_ID = auto()
-    USERBOX = auto()
-
-
-class Sex(Enum):
-    """Enumeration to define Sex options."""
-
-    MALE = "男性"
-    FEMALE = "女性"
-    OTHER = "その他"
 
 
 class Genre(Enum):

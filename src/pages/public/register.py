@@ -3,12 +3,15 @@
 The RegisterPage class in this module is responsible for rendering
 the registration page and managing the user interactions on this page.
 """
+from typing import ClassVar
+
 import pydantic
 import sqlalchemy
 import streamlit as st
 
 import session
-from models import const, model
+from models import account, const
+from pages.utils import streamlit_util
 from services import account_repository
 
 
@@ -19,7 +22,10 @@ class RegisterPage:
     the user interactions on this page.
     """
 
-    __slots__ = ("__session_manager", "__account_repository", "title")
+    PAGE_ID: ClassVar[const.PageID] = const.PageID.REGISTER
+    PAGE_TITLE: ClassVar[const.PageTitle] = const.PageTitle.REGISTER
+
+    __slots__ = ("__session_manager", "__account_repository")
 
     def __init__(
         self,
@@ -28,46 +34,49 @@ class RegisterPage:
     ) -> None:
         self.__session_manager = session_manager
         self.__account_repository = account_repository.AccountRepository(engine)
-        self.title = const.PageTitle.REGISTER.value
 
     def render(self) -> None:
         """This method renders the Register Account Page."""
-        st.title(self.title)
+        st.title(self.PAGE_TITLE.value)
 
-        if self.__session_manager.is_user_logged_in():
+        if streamlit_util.is_user_already_logged_in(self.__session_manager):
             return
 
         with st.form(key="register_form"):
             user_id = st.text_input("ユーザーID(5~20文字)")
             password = st.text_input(label="パスワード(8字以上で英字と数字を含む)", type="password")
-
             age = st.slider("年齢")
-            sex = st.selectbox(label="性別", options=(sex.value for sex in const.Sex))
+            sex: account.Sex | None = st.selectbox(
+                label="性別", options=account.Sex, format_func=lambda sex: sex.value
+            )
             if st.form_submit_button("登録"):
+                if sex is None:
+                    st.error("予期せぬエラーが発生しました: 性別が選択されていません")
+                    return
                 # TODO(kaito): 例外処理の最適化
                 try:
-                    user_id = model.UserID(user_id=user_id)
-                    password = model.Password(password=password)
-                    age = model.Age(age=age)
+                    user_id = account.UserID(user_id=user_id)
+                    password = account.Password(password=password)
+                    age = account.Age(age=age)
                     self.__register(user_id, password, age, sex)
                 except pydantic.ValidationError as error:
                     st.error(error.errors()[0]["msg"])
 
         st.button(
             label="ログインページに戻る",
-            on_click=lambda: self.__session_manager.set_page_id(const.PageID.LOGIN.name),
+            on_click=lambda: self.__session_manager.set_page_id(const.PageID.LOGIN),
         )
 
     def __register(
-        self, user_id: model.UserID, password: model.Password, age: model.Age, sex: const.SexLiteral
+        self, user_id: account.UserID, password: account.Password, age: account.Age, sex: account.Sex
     ) -> None:
         """This method registers a new account when the register button is clicked.
 
         Args:
-            user_id (model.UserID): The user ID.
-            password (model.Password): The password.
-            age (model.Age): The age.
-            sex (const.SexLiteral): The sex.
+            user_id (account.UserID): The user ID.
+            password (account.Password): The password.
+            age (account.Age): The age.
+            sex (account.Sex): The sex.
         """
         # TODO(kaito): 例外処理の最適化
         try:

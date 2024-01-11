@@ -3,12 +3,15 @@
 The RecommendPage class in this module is in charge of rendering
 the recommendation page and managing the user interactions on this page.
 """
+from typing import ClassVar
+
 import pydantic
 import sqlalchemy
 import streamlit as st
 
 import session
-from models import const, model
+from models import const, history
+from pages.utils import streamlit_util
 from services import history_repository, recommendation_service
 
 
@@ -19,7 +22,10 @@ class RecommendPage:
     the user interactions on this page.
     """
 
-    __slots__ = ("__session_manager", "__history_repository", "title")
+    PAGE_ID: ClassVar[const.PageID] = const.PageID.RECOMMEND
+    PAGE_TITLE: ClassVar[const.PageTitle] = const.PageTitle.RECOMMEND
+
+    __slots__ = ("__session_manager", "__history_repository")
 
     def __init__(
         self,
@@ -28,7 +34,6 @@ class RecommendPage:
     ) -> None:
         self.__session_manager = session_manager
         self.__history_repository = history_repository.HistoryRepository(engine)
-        self.title = const.PageTitle.RECOMMEND.value
 
     def render(self) -> None:
         """This method renders the Recommend Page.
@@ -36,40 +41,16 @@ class RecommendPage:
         The render method is in charge of rendering the recommendation page and managing
         the user interactions on this page.
         """
-        st.title(self.title)
+        st.title(self.PAGE_TITLE.value)
         st.header("あなたへのおすすめのゲームを提案します")
         st.subheader("あなたの好みを教えてください(複数選択可)")
 
         with st.container(border=True):
-            genre = ", ".join(
-                st.multiselect(
-                    label="ジャンル",
-                    options=(genre.value for genre in const.Genre),
-                    placeholder="未選択",
-                )
-            )
+            genre = streamlit_util.create_multiselect("ジャンル", const.Genre)
             low_price, high_price = st.slider("価格", value=(0, 10000), step=1000)
-            hardware = ", ".join(
-                st.multiselect(
-                    label="ハードウェア",
-                    options=(hardware.value for hardware in const.Hardware),
-                    placeholder="未選択",
-                )
-            )
-            game_format = ", ".join(
-                st.multiselect(
-                    label="ゲーム形式",
-                    options=(game_format.value for game_format in const.GameFormat),
-                    placeholder="未選択",
-                )
-            )
-            world_view = ", ".join(
-                st.multiselect(
-                    label="世界観",
-                    options=(world_view.value for world_view in const.WorldView),
-                    placeholder="未選択",
-                )
-            )
+            hardware = streamlit_util.create_multiselect("ハードウェア", const.Hardware)
+            game_format = streamlit_util.create_multiselect("ゲーム形式", const.GameFormat)
+            world_view = streamlit_util.create_multiselect("世界観", const.WorldView)
             with st.expander("詳細検索"):
                 detail = st.text_area(
                     label="詳細(1000字以内)",
@@ -80,12 +61,12 @@ class RecommendPage:
                 with st.spinner("検索中..."):
                     # TODO(kaito): 例外処理の最適化
                     try:
-                        genre = model.Genre(genre=genre)
-                        price = model.Price(low_price=low_price, high_price=high_price)
-                        hardware = model.Hardware(hardware=hardware)
-                        game_format = model.GameFormat(game_format=game_format)
-                        world_view = model.WorldView(world_view=world_view)
-                        detail = model.Detail(detail=detail)
+                        genre = history.Genre(genre=genre)
+                        price = history.Price(low_price=low_price, high_price=high_price)
+                        hardware = history.Hardware(hardware=hardware)
+                        game_format = history.GameFormat(game_format=game_format)
+                        world_view = history.WorldView(world_view=world_view)
+                        detail = history.Detail(detail=detail)
                         self.__recommend(genre, price, hardware, game_format, world_view, detail)
                     except pydantic.ValidationError as error:
                         st.error(error.errors()[0]["msg"])
@@ -93,17 +74,17 @@ class RecommendPage:
 
         st.button(
             label="アカウント情報",
-            on_click=lambda: self.__session_manager.set_page_id(const.PageID.ACCOUNT_INFO.name),
+            on_click=lambda: self.__session_manager.set_page_id(const.PageID.ACCOUNT_INFO),
         )
 
     def __recommend(
         self,
-        genre: model.Genre,
-        price: model.Price,
-        hardware: model.Hardware,
-        game_format: model.GameFormat,
-        world_view: model.WorldView,
-        detail: model.Detail,
+        genre: history.Genre,
+        price: history.Price,
+        hardware: history.Hardware,
+        game_format: history.GameFormat,
+        world_view: history.WorldView,
+        detail: history.Detail,
     ) -> None:
         """Generate a game recommendation based on user preferences.
 
@@ -111,12 +92,12 @@ class RecommendPage:
         as parameters and generates a game recommendation accordingly.
 
         Args:
-            genre (model.Genre): Preferred genre of the game.
-            price (model.Price): Preferred price range of the game.
-            hardware (model.Hardware): Preferred hardware for the game.
-            game_format (model.GameFormat): Preferred game format.
-            world_view (model.WorldView): Preferred world view of the game.
-            detail (model.Detail): Additional details or preferences for the game.
+            genre (history.Genre): Preferred genre of the game.
+            price (history.Price): Preferred price range of the game.
+            hardware (history.Hardware): Preferred hardware for the game.
+            game_format (history.GameFormat): Preferred game format.
+            world_view (history.WorldView): Preferred world view of the game.
+            detail (history.Detail): Additional details or preferences for the game.
         """
         recommended_text: str | None = recommendation_service.generate_recommended_text(
             genre, price, hardware, game_format, world_view, detail
@@ -125,7 +106,11 @@ class RecommendPage:
             st.error("予期せぬエラーが発生しました: おすすめのゲームが見つかりませんでした")
             return
 
-        recommended_game = model.RecommendedGame.from_text(recommended_text)
+        try:
+            recommended_game = history.RecommendedGame.from_text(recommended_text)
+        except ValueError as error:
+            st.error(error)
+            return
         if user_id := self.__session_manager.get_user_id():
             self.__history_repository.add(
                 user_id, genre, price, hardware, game_format, world_view, detail, recommended_game

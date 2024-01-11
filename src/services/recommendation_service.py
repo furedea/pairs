@@ -1,16 +1,16 @@
 """This module provides the service for generating game recommendations using OpenAI's GPT-3.5 model."""
 import openai
 
-from models import model
+from models import history
 
 
 def generate_recommended_text(
-    genre_model: model.Genre,
-    price_model: model.Price,
-    hardware_model: model.Hardware,
-    game_format_model: model.GameFormat,
-    world_view_model: model.WorldView,
-    detail_model: model.Detail,
+    genre_model: history.Genre,
+    price_model: history.Price,
+    hardware_model: history.Hardware,
+    game_format_model: history.GameFormat,
+    world_view_model: history.WorldView,
+    detail_model: history.Detail,
 ) -> str | None:
     """Generates a game recommendation based on user preferences using OpenAI's GPT-3.5 model.
 
@@ -19,18 +19,18 @@ def generate_recommended_text(
     It then uses these preferences to generate a game recommendation using OpenAI's GPT-3.5 model.
 
     Args:
-        genre_model (model.Genre): The user's preferred game genre.
-        price_model (model.Price): The user's preferred price range for the game.
-        hardware_model (model.Hardware): The hardware available to the user.
-        game_format_model (model.GameFormat): The user's preferred game format.
-        world_view_model (model.WorldView): The user's preferred world view for the game.
-        detail_model (model.Detail): Any additional details or preferences provided by the user.
+        genre_model (history.Genre): The user's preferred game genre.
+        price_model (history.Price): The user's preferred price range for the game.
+        hardware_model (history.Hardware): The hardware available to the user.
+        game_format_model (history.GameFormat): The user's preferred game format.
+        world_view_model (history.WorldView): The user's preferred world view for the game.
+        detail_model (history.Detail): Any additional details or preferences provided by the user.
 
     Returns:
         str | None: A string containing the recommended game, or None if a recommendation could not be generated.
     """
     response = openai.OpenAI().chat.completions.create(
-        model="gpt-3.5-turbo-1106",
+        model="gpt-3.5-turbo-1106",  # gpt-4-1106-preview takes longer
         messages=[
             {
                 "role": "system",
@@ -39,23 +39,22 @@ def generate_recommended_text(
             {
                 "role": "user",
                 "content": f"""
+                    ユーザーの要望:
                     ジャンル: {genre_model.genre}
-                    値段: {price_model.price}
-                    ハードウェア: {hardware_model.hardware}
+                    価格帯: {price_model.price}
+                    対応ハードウェア: {hardware_model.hardware}
                     ゲーム形式: {game_format_model.game_format}
                     世界観: {world_view_model.world_view}
-                    詳細: {detail_model.detail}
+                    その他の詳細: {detail_model.detail}
 
-                    以下の形式でゲームの推薦をお願いします:
+                    出力形式:
                     推薦ゲーム: [ゲームタイトル]
-
                     概要: [簡潔なゲーム説明]
-
                     あなたの要望とのマッチング: このゲームは[ユーザーの要望]に対して[マッチングポイント]を提供します。
-
                     ユーザーレビュー: [レビューの抜粋]
-
                     購入/プレイ方法: [購入/プレイ方法に関する情報]
+
+                    注記: 条件が不明瞭または限られている場合は、広く人気のあるゲームを推薦してください。
                     """,
             },
         ],
