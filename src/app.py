@@ -6,8 +6,9 @@ The database setup utilizes SQLAlchemy and SQLModel.
 The session setup involves initializing API client services for authentication, account management, and history.
 The application setup involves creating an instance of MultiPageApp.
 """
+from pathlib import Path
+
 import sqlalchemy
-import sqlalchemy_utils
 import sqlmodel
 import streamlit as st
 
@@ -15,22 +16,18 @@ import page
 import session
 
 
-def initialize_database(db_user: str, db_password: str, db_host: str, db_port: str, db_name: str) -> sqlalchemy.Engine:
+def initialize_database(db_dir_path: str) -> sqlalchemy.Engine:
     """Initialize database. This function includes side effects.
 
     Args:
-        db_user (str): Database user.
-        db_password (str): Database password.
-        db_host (str): Database host.
-        db_port (str): Database port.
-        db_name (str): Database name.
+        db_dir_path (str): Path to the database directory.
+
     Returns:
         sqlalchemy.Engine: Database engine.
     """
-    db_url = f"mysql+mysqlconnector://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}"
+    Path(db_dir_path).mkdir(exist_ok=True)
+    db_url = f"sqlite:///{db_dir_path}/pairs.db"
     engine = sqlmodel.create_engine(db_url)
-    if not sqlalchemy_utils.database_exists(engine.url):
-        sqlalchemy_utils.create_database(engine.url)
     sqlmodel.SQLModel.metadata.create_all(engine)
     return engine
 
@@ -41,7 +38,7 @@ def initialize_app() -> page.PageController:
     This function initializes the database and the session manager. It also sets the page configuration.
     """
     session_manager = session.SessionManager()
-    engine = initialize_database(**st.secrets.db_credentials)
+    engine = initialize_database("db")
     return page.PageController(session_manager, engine)
 
 
